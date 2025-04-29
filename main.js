@@ -213,3 +213,9 @@ function clearDisplay() {
     sign = undefined;
     secondNum = undefined;
 }
+
+
+// Bug fixes: 
+// first number doesnt populate
+// can do 2 + 5 = 7 + 2 = 9 
+// but cant do 2 + 5 + 2

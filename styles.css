@@ -110,4 +110,22 @@
     background-color: palevioletred;
 }
 
+/* clicked buttons */
 
+.digits:active {
+    background-color: rgb(90, 127, 81); /* green or any color you want */
+}
+
+.operators.selected {
+    background-color:rgb(154, 79, 104); /* green or any color you want */
+}
+
+.special:active {
+    background-color: rgb(157, 149, 174);
+
+}
+
+#equals:active {
+    background-color:rgb(154, 79, 104); /* green or any color you want */
+    
+}

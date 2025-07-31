@@ -241,10 +241,14 @@ decimal.addEventListener('click', decimalFunc);
 function decimalFunc() {
     let value = screenDisplay.textContent;
 
-    if (value.length === 0 || value === '0' || value.includes('.')) {
-        return; // nothing to toggle
+    if (justOperated) {
+        screenDisplay.textContent = '.';
+        justOperated = false;
+        return;
     }
-    else {
+    if (value.includes('.')) {
+        return; // nothing to toggle
+    } else {
         screenDisplay.textContent += '.';
     } 
 }

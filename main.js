@@ -3,18 +3,17 @@ var buttons = document.querySelectorAll('.buttons');
 var calculates = document.querySelectorAll('.calculates');
 var special = document.querySelectorAll('.special');
 var equals = document.getElementById('equals');
-
 var clear = document.getElementById('clear');
 var operators = document.querySelectorAll('.operators');
-var posNeg = document.getElementById('pos-neg')
-var percent = document.getElementById('percent')
-var decimal = document.getElementById('decimal')
+var posNeg = document.getElementById('pos-neg');
+var percent = document.getElementById('percent');
+var decimal = document.getElementById('decimal');
 
 
 
 // variables for updating display
 var numberOne;
-var numberTwo
+var numberTwo;
 var sign;
 var answer;
 var array = [];
@@ -22,8 +21,8 @@ var answerAvailable;
 var justOperated;
 var equalsPressed = false;
 
-// ADD SUBTRACT MULTIPLY DIVIDE FUNCTIONS
-// add
+// ADD SUBTRACT MULTIPLY DIVIDE FUNCTIONS 
+// all in one function (operate)
 function operate(sign) {
     let answer = array
         .map(Number)
@@ -38,25 +37,26 @@ function operate(sign) {
                 return accum / current;
              } 
         });
-    answer = Math.round(answer * 1e8) / 1e8;
+    answer = Math.round(answer * 1e9) / 1e9;
 
-    // Convert to string
-    let displayAnswer = answer.toString();
-
-    // Trim if longer than 9 visible characters
-    if (displayAnswer.length > 8) {
-        displayAnswer = displayAnswer.slice(0, 8);
+    let displayAnswer;
+    // use scientific notation for large or very small numbers
+    if (Math.abs(answer) >= 1e9 || Math.abs(answer) < 1e-8 && answer !== 0) {
+        displayAnswer = answer.toExponential(2); // example: 1.00e+16
+    // if not very large number just make sure doesn't overflow screen
+    } else {
+        displayAnswer = answer.toString();
+        if (displayAnswer.length > 9) {
+            displayAnswer = displayAnswer.slice(0, 9);
+        }
     }
     
     screenDisplay.textContent = displayAnswer;
     const parsedAnswer = Number(displayAnswer);
-    console.log('array 1: ' + array)
-    //array = [];
     if (array.length == 2) {
         array = [];
         array.push(parsedAnswer);
     }
-    console.log('array 2: ' + array)
     numberOne = undefined;
     numberTwo = undefined;
     if (array.length > 2) {
@@ -67,15 +67,14 @@ function operate(sign) {
 
 
 //EVENT LISTENERS AND THEIR FUNCTIONS
-// event listener -- for each button pressed update display
+// event listener -- for each button pressed (number or symbol (operator) or equals) update display
 buttons.forEach(button => {
-    button.addEventListener('click', updateDisplay)
+    button.addEventListener('click', updateDisplay);
 })
-// updates display, assigns values to firstNum, secondNum, sign, and pushes values 
+// updates display, assigns values to numberOne, numberTwo, sign, and pushes values 
 // to array.
 function updateDisplay(e) {
     var buttonText = e.target.textContent;
-    console.log('this is the buttonText: ' + buttonText);
 
     let numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     let symbols = ['+', '-', 'x', '/'];
@@ -135,6 +134,7 @@ function updateDisplay(e) {
         screenDisplay.textContent = '';
         return sign;
     }
+
     if (buttonText === '=') {
         if (numberTwo && array.length === 1) {
             array.push(numberTwo);
@@ -191,13 +191,6 @@ function negateFunc() {
 
 
 
-
-    
-
-
-
-
-
 // percent event listener 
 percent.addEventListener('click', percentFunc);
 
@@ -206,33 +199,39 @@ function percentFunc() {
 
     if (value.length === 0 || value === '0') return;
 
-    var percentage = value / 100;
-    var roundedPerc = Math.round(percentage * 1e8) / 1e8;
-    screenDisplay.textContent = roundedPerc;
+    var percentage = Number(value) / 100;
+    var roundedPerc = Math.round(percentage * 1e9) / 1e9;
 
-    // Handle what to assign percent value to
+    let displayPercent;
+    if (Math.abs(roundedPerc) >= 1e9 || (Math.abs(roundedPerc) < 1e-8 && roundedPerc !== 0)) {
+        displayPercent = roundedPerc.toExponential(2);
+    } else {
+        displayPercent = roundedPerc.toString();
+        if (displayPercent.length > 9) {
+            displayPercent = displayPercent.slice(0, 9);
+        }
+    }
+
+    screenDisplay.textContent = displayPercent;
+
+    // update the correct variable
     if (equalsPressed) {
-        // After equals, treat percent as new starting value
-        numberOne = roundedPerc;
+        numberOne = displayPercent;
         array = [numberOne];
         return;
     }
-
     if (array.length === 0) {
-        numberOne = roundedPerc;
+        numberOne = displayPercent;
     } else if (array.length === 1 && !sign) {
-        // updating numberOne if no operator yet
-        numberOne = roundedPerc;
-        array[0] = roundedPerc;
+        numberOne = displayPercent;
+        array[0] = displayPercent;
     } else if (array.length === 1 && sign) {
-        // operator selected, now changing numberTwo
-        numberTwo = roundedPerc;
+        numberTwo = displayPercent;
     } else if (array.length === 2) {
-        numberTwo = roundedPerc;
-        array[1] = roundedPerc;
+        numberTwo = displayPercent;
+        array[1] = displayPercent;
     }
 }
-
 
 
 // decimal event listener 
@@ -256,7 +255,7 @@ function decimalFunc() {
 
 
 
-// equals button event listener to call operate function
+// event listener to call operate function if equals button or operator is clicked when array has 2 numbers
 calculates.forEach(calculate => {
     calculate.addEventListener('click', getAnswer);
 });
@@ -271,7 +270,7 @@ function getAnswer(e) {
 
 
 // clear button event listener 
-clear.addEventListener('click', clearDisplay)
+clear.addEventListener('click', clearDisplay);
 
 function clearDisplay() {
     screenDisplay.textContent = '';
@@ -285,7 +284,8 @@ function clearDisplay() {
 }
 
 
-// operator button click display interactivity 
+// INTERACTIVITY
+// operator highlight button toggle for display interactivity
 function clearOperatorHighlight() {
     operators.forEach(btn => btn.classList.remove('selected'));
     }
@@ -310,158 +310,3 @@ operators.forEach(btn => {
 });
 
 equals.addEventListener('click', clearOperatorHighlight);
-
-
-// TUES JUL 22 ENDING DAY PROBLEMS:
-// can do 2 + 5 = 7 + 2 = 9 ... but cant do 2 + 5 + 2 
-// *** NOW I CAN!!! math works. just issue with display.. still has other weird math bugs
-// math works like 2+5+3+9+1 etc. but doesnt work 2+5-3+1*4/5.. only can switch signs 
-// when pressing equals number between each it allows sign to switch 
-
-// ^^ the problem above with not being able to sequence and switch signs the code was
-// using the sign to the right instead of the sign before. the reason is this: 
-
-// The problem is in this: You’re setting sign = buttonText 
-// as soon as the user clicks the operator, even before operate() has run on the 
-// current sign. You should store the operator (sign) only AFTER operate() has used 
-// the current one. So inside your updateDisplay() → operator block, move 
-// sign = buttonText to the very end, after operate(sign).
-
-// update code from this: 
-// if (symbols.includes(buttonText)) {
-    // if (answerAvailable) {
-        // screenDisplay.textContent = ''
-        // screenDisplay.textContent = buttonText;
-        // array = [];
-        // array.push(answer);
-    // } else if (numberOne || numberTwo) {
-        // screenDisplay.textContent = ''
-        // screenDisplay.textContent = buttonText;
-        // array.push(numberOne);
-    // }
-// }
-
-// to this:
-// if (symbols.includes(buttonText)) {
-    // if (array.length === 2) {
-        // operate(sign); 
-    // } else if (answerAvailable) {
-        // array = [answer];
-        // answerAvailable = false;
-    // } else if (numberOne) {
-        // array.push(numberOne);
-    // }
-
-    // sign = buttonText;
-    // screenDisplay.textContent = '';
-// }
-// code before change is in badfuzzy2.js
-
-
-
-
-
-
-
-
-
-
-// WED JUL 23 ENDING DAY PROBLEMS: 
-
-// fixed:
-
-// chaining math works: 2 + 5 + 7, and switching signs too, 2 + 5 + 7 - 3 * 2 etc.
-
-
-
-// remaining problems: 
-
-// what doesnt work now is chaining after pressing = . so 1 + 5 = (6) + 1.. when press
-// '+' calc displays NaN.
-
-// second number doesnt populate
-
-// cant do 2 + 5..... (then start over without pressing clear 3+1)
-
-
-
-// THURSDAY JUL 24
-// fixed: 
-// second number populates and works (fixed in symbol section)
-// remaining problems: 
-// what doesn't work now is chaining after pressing = . so 1 + 5 = (6) + 1.. when press
-// '+' calc displays NaN.
-// cant do 2 + 5..... (then start over without pressing clear 3+1)
-
-
-
-// FRIDAY JUL 25
-
-// fixed: 
-// chaining after pressing = . so 1 + 5 = (6) + 1..  now works
-// can do 2 + 5..... (then start over without pressing clear 3+1)
-
-// remaining problems: 
-// add functionality to decimal and percent and pos/neg
-// only allow 1 decimal to be on the screen display. so no 55.3.2
-// add number limit & round long decimals (flows off screen)
-// clean up code
-
-
-
-
-
-// SATURDAY JUL 26
-
-// fixed: 
-// chaining after pressing = . so 1 + 5 = (6) + 1..  now works
-// can do 2 + 5..... (then start over without pressing clear 3+1)
-// add functionality to percent and pos/neg
-// add number limit & round long decimals (flows off screen)
-// add functionality to decimal & only allow 1 decimal to be on the screen display. so no 55.3.2
-
-
-
-// remaining problems: 
-// clean up code
-
-
-
-
-
-
-// MONDAY JUL 28
-
-// fixed: 
-// chaining after pressing = . so 1 + 5 = (6) + 1..  now works
-// can do 2 + 5..... (then start over without pressing clear 3+1)
-// add functionality to percent and pos/neg
-// add number limit & round long decimals (flows off screen)
-// add functionality to decimal & only allow 1 decimal to be on the screen display. so no 55.3.2
-// add button pressing color change
-
-// remaining problems: 
-// neg pos is not working correctly (only works when added neg to an answer and then continuing math)
-// unpress = button color change
-// clean up code
-
-
-
-
-
-// TUESDAY JUL 29
-
-// fixed: 
-// chaining after pressing = . so 1 + 5 = (6) + 1..  now works
-// can do 2 + 5..... (then start over without pressing clear 3+1)
-// add functionality to percent and pos/neg
-// add number limit & round long decimals (flows off screen)
-// add functionality to decimal & only allow 1 decimal to be on the screen display. so no 55.3.2
-// add button pressing color change
-// fixed unpress = button color change
-// fixed - neg pos was not working correctly (only worked when added neg to an answer and then continuing 
-// math)
-
-
-// remaining problems: 
-// clean up code

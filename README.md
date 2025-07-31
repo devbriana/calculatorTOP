@@ -30,7 +30,7 @@ A fully functional web-based calculator built with HTML, CSS, and JavaScript. Su
 
 ## Tech Used
 - HTML5  
-- CSS3 
+- CSS3 (with Flexbox)
 - Vanilla JavaScript
 
 ## License
